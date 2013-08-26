@@ -1,0 +1,13 @@
+html {
+  margin: 0;
+  background: #333;
+}
+h1  {
+  color: #fff;
+}
+#map {
+  margin: 0px;
+  height: 800px;
+  width:100%;
+  }
+

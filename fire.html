@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wildfires | US</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet"
+    href="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.css" />
+  <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.ie.css" />
+  <![endif]-->
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="MarkerCluster.css" />
+  <link rel="stylesheet" href="MarkerCluster.Default.css" />
+  <!--[if lte IE 8]><link rel="stylesheet" href="markercluster/MarkerCluster.Default.ie.css" /><![endif]-->
+  <link rel="points" href="fires.geojson"/>
+
+</head>
+<body>
+  <h1>Wildfires | US | 2013-24-08</h1>
+  <div id="map"></div>
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.js"></script>
+  <script src="leaflet.markercluster.js"></script>
+  <script>
+    var terrain = L.tileLayer(
+      'http://api.tiles.mapbox.com/v3/grafa.map-8cndm7h3/{z}/{x}/{y}.png', {
+        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+        });
+
+    var streets = L.tileLayer(
+      'http://api.tiles.mapbox.com/v3/grafa.map-omtiruqb/{z}/{x}/{y}.png', {
+        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+        });
+
+  var fireIcon = L.icon({
+      iconUrl: 'fire.png'
+    });
+
+  function onEachFeature(feature, layer) {
+    layer.bindPopup('<h2>' + feature.properties.fire_name + '</h2>' + '<br />' + 
+      '<strong>Fire Number: </strong>' + feature.properties.fire_number + '<br />' + 
+      '<strong>Acres Burned: </strong>' + feature.properties.area + '<br />' + 
+      '<strong>Report Date: </strong>' + feature.properties.report_date
+      );
+  }
+
+  /* Load points GeoJSON and add to map */
+  $.getJSON($('link[rel="points"]').attr("href"), function(data) {
+    var geojson = L.geoJson(data, {
+
+      pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, {icon: fireIcon});
+      },
+
+      onEachFeature: onEachFeature
+   });
+    var map = L.map('map').fitBounds(geojson.getBounds());
+    terrain.addTo(map);
+    L.control.layers({
+      "Terrain (default)": terrain,
+      "Mapbox Streets": streets
+      }).addTo(map);
+    var markers = L.markerClusterGroup();
+
+    markers.addLayer(geojson);
+    map.addLayer(markers);
+  });
+
+  </script>
+</body>
+</html>
