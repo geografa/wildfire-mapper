@@ -18,8 +18,13 @@
 
 </head>
 <body>
-  <h1>Wildfires | US | 2013-24-08</h1>
-  <div id="map"></div>
+  <div id="header">
+    <h1>US Wildfires</h1>
+    <h2>2013-24-08</h2>
+  </div>
+  <div class="container">
+    <div id="map"></div>
+  </div>
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <script src="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.js"></script>
   <script src="leaflet.markercluster.js"></script>
@@ -62,6 +67,7 @@
       "Terrain (default)": terrain,
       "Mapbox Streets": streets
       }).addTo(map);
+
     var markers = L.markerClusterGroup();
 
     markers.addLayer(geojson);
