@@ -1,76 +1,89 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no' />
-  
-  <script src='mapbox.js'></script>
-  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-  <link href='mapbox.css' rel='stylesheet' />
+  <title>Wildfires | US</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet"
+    href="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.css" />
+  <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.ie.css" />
+  <![endif]-->
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="MarkerCluster.css" />
   <link rel="stylesheet" href="MarkerCluster.Default.css" />
-  <!--[if lte IE 8]>
-    <link href='//api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.ie.css' rel='stylesheet' >
-  <![endif]-->
-  
+  <!--[if lte IE 8]><link rel="stylesheet" href="markercluster/MarkerCluster.Default.ie.css" /><![endif]-->
+  <link rel="points" href="fires.geojson"/>
+
 </head>
 <body>
-<div id='map'></div>
-<div id='header'>
-  <h1>US Wildfires</h1>
-  <strong>2013-26-08 Source: <a href="#">USFS</a>.</strong>
-</div>
-<div id='infoback'>
-  <div id='info'></div>
-</div>
-<script type='text/javascript'>
+  <div id="map"></div>
 
-var map = L.mapbox.map('map', 'grafa.map-8cndm7h3')
-  .setView([42, -100], 5);
-
-L.control.layers({
-  'Dark Map': L.mapbox.tileLayer('grafa.map-8cndm7h3').addTo(map),
-  'Light Map': L.mapbox.tileLayer('grafa.map-omtiruqb')
-}).addTo(map);
-
-map.markerLayer.loadURL('fires.geojson');
+  <div id='infoback'>
+    <div id='info'>    
+    <h1>US Wildfires</h1>
+    <strong>2013-27-08 Source: <a href="http://activefiremaps.fs.fed.us/lg_fire2.php#">Active Fire Mapping Program</a>.</strong>
   
-map.markerLayer.on('click', function(e) {
-  e.layer.unbindPopup();
-  var feature = e.layer.feature;
-  var info = '<h2>' + feature.properties.fire_name + '</h2><p>' + 
-    '<strong>Fire Number: </strong>' + feature.properties.fire_number + '<br />' + 
-    '<strong>Acres Burned: </strong>' + feature.properties.area + '<br />' + 
-    '<strong>Report Date: </strong>' + feature.properties.report_date + '</p>';
+    <p>
+      These data points represent current large fire incidents in the United States. Data are from the <a href="http://activefiremaps.fs.fed.us/">Active Fire Mapping Program</a> at the US Forest Service. Individual points are shown while clusters of points are represented with the number of points close to each other. Hovering the clustered points show the bounds of the points while clicking them will zoom you in to the extent.
+    </p>
+    <p>
+      The hope is to keep this up to date with new publishings from the Forest Service. The maps being used are from <a href="http://mapbox.com">Mapbox</a> and the mapping javascript library is <a href="http://leafletjs.com">Leaflet</a>. 
+    </p>
+    <p class="disclaimer">
+      The information on this map was derived from USFS. Grafa cannot accept any responsibility for errors, omissions, or positional accuracy. There are no warranties, expressed or implied, including the warranty of merchantability or fitness for a particular purpose, accompanying this product. However, notification of any errors will be appreciated.
+    </p></div>
+  </div>
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.js"></script>
+  <script src="leaflet.markercluster.js"></script>
+  <script>
+    var terrain = L.tileLayer(
+      'http://api.tiles.mapbox.com/v3/grafa.map-8cndm7h3/{z}/{x}/{y}.png', {
+        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+        });
 
-  document.getElementById('info').innerHTML = info;
-});
+    var streets = L.tileLayer(
+      'http://api.tiles.mapbox.com/v3/grafa.map-omtiruqb/{z}/{x}/{y}.png', {
+        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+        });
 
-// Clear the tooltip when map is clicked
-map.on('click',function(e){
-    document.getElementById('info').innerHTML = '';
-});
+  var fireIcon = L.icon({
+      iconUrl: 'fire.png'
+    });
 
+  function onEachFeature(feature, layer) {
+    layer.bindPopup('<h2>' + feature.properties.fire_name + '</h2>' + '<br />' + 
+      '<strong>Fire Number: </strong>' + feature.properties.fire_number + '<br />' + 
+      '<strong>Acres Burned: </strong>' + feature.properties.area + '<br />' + 
+      '<strong>Report Date: </strong>' + feature.properties.report_date
+      );
+  }
 
-// Clear the tooltip when map is clicked
-map.on('click',function(e){
-    document.getElementById('info').innerHTML = '';
-});
+  /* Load points GeoJSON and add to map */
+  $.getJSON($('link[rel="points"]').attr("href"), function(data) {
+    var geojson = L.geoJson(data, {
 
+      pointToLayer: function (feature, latlng) {
+        return L.marker(latlng, {icon: fireIcon});
+      },
 
+      onEachFeature: onEachFeature
+   });
+    var map = L.map('map').fitBounds(geojson.getBounds());
+    terrain.addTo(map);
+    L.control.layers({
+      "Terrain (default)": terrain,
+      "Mapbox Streets": streets
+      }).addTo(map);
 
-// Set a custom icon on each marker based on feature properties
-map.markerLayer.on('layeradd', function(e) {
-    var marker = e.layer,
-        feature = marker.feature;
+    var markers = L.markerClusterGroup();
 
-    marker.setIcon(L.icon({
-    iconUrl: 'fire.png',
-    iconSize: [32, 37],
-    popupAnchor:  [-2, -16]
-  }));
-});
-</script>
+    markers.addLayer(geojson);
+    map.addLayer(markers);
+  });
+
+  </script>
 </body>
 </html>
-

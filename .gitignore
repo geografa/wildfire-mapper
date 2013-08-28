@@ -1,1 +1,4 @@
 .DS_store
+fire-*.geojson
+index.bak.html
+today_fires.xml

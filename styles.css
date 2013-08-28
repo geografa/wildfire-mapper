@@ -10,29 +10,20 @@ body {
   color: #fff;
 }
 
-div#header {
+/*div#header {
   position:absolute; top: 0; right: 0;
   margin: 40px 60px;
   z-index: 1;
-}
-
-div#header h1 {
-  margin: 0;
-  color: rgb(219, 55, 40);
-}
+}*/
 
 a {
   color: #ddd;
 }
 
-div#header strong {
-  font-size: 0.8em;
-  margin: 0;
-}
-
 h1 {
   text-transform: uppercase;
   font-weight: bold;
+  color: rgb(219, 55, 40);
 }
 
 div#infoback {
@@ -51,7 +42,7 @@ div#info h2 {
 }
 
 div#info p { 
-  font-size: 0.9em;
+  /*font-size: 0.9em;*/
 }
 
 
@@ -66,3 +57,6 @@ div#info p {
   color: #333;
 }
 
+.disclaimer {
+  font-size: 0.7em;
+}
