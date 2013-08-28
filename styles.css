@@ -10,12 +10,6 @@ body {
   color: #fff;
 }
 
-/*div#header {
-  position:absolute; top: 0; right: 0;
-  margin: 40px 60px;
-  z-index: 1;
-}*/
-
 a {
   color: #ddd;
 }
@@ -40,11 +34,6 @@ div#info {
 div#info h2 { 
   margin-bottom: 0px;
 }
-
-div#info p { 
-  /*font-size: 0.9em;*/
-}
-
 
 #map {   
   position:absolute; 
