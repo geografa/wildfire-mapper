@@ -10,8 +10,6 @@
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.ie.css" />
   <![endif]-->
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="MarkerCluster.css" />
-  <link rel="stylesheet" href="MarkerCluster.Default.css" />
   <!--[if lte IE 8]><link rel="stylesheet" href="markercluster/MarkerCluster.Default.ie.css" /><![endif]-->
   <link rel="points" href="fires.geojson"/>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
@@ -42,10 +40,10 @@
   <div id='infoback'>
     <div id='info'>
     <h1>US Wildfires</h1>
-    <strong>2013-27-08 Source: <a href="http://activefiremaps.fs.fed.us/lg_fire2.php#">Active Fire Mapping Program</a>.</strong>
+    <strong>2013-03-09 Source: <a href="http://activefiremaps.fs.fed.us/lg_fire2.php#">Active Fire Mapping Program</a>.</strong>
   
     <p>
-      These data points represent current large fire incidents in the United States. Data are from the <a href="http://activefiremaps.fs.fed.us/">Active Fire Mapping Program</a> at the US Forest Service. Individual points are shown while clusters of points are represented with a circle and the number of fires close to each other. Hovering over the clustered points will show the bounds of the points while clicking on them will zoom you in to their extents.
+      These data points represent current large fire incidents in the United States. Data are from the <a href="http://activefiremaps.fs.fed.us/">Active Fire Mapping Program</a> at the US Forest Service. The size of the circle marker represents the size of the fire.
     </p>
     <p>
       The hope is to keep this up to date with new publishings from the Forest Service. The basemaps being used are from <a href="http://mapbox.com">Mapbox</a> and the mapping javascript library is <a href="http://leafletjs.com">Leaflet</a>. 
@@ -56,52 +54,72 @@
   </div>
   <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
   <script src="http://cdn.leafletjs.com/leaflet-0.6.2/leaflet.js"></script>
-  <script src="leaflet.markercluster.js"></script>
+
   <script>
-    var terrain = L.tileLayer(
-      'http://api.tiles.mapbox.com/v3/grafa.map-8cndm7h3/{z}/{x}/{y}.png', {
-        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
-        });
+  var terrain = L.tileLayer(
+    'http://api.tiles.mapbox.com/v3/grafa.map-8cndm7h3/{z}/{x}/{y}.png', {
+      attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+      });
 
-    var streets = L.tileLayer(
-      'http://api.tiles.mapbox.com/v3/grafa.map-omtiruqb/{z}/{x}/{y}.png', {
-        attribution: "<a href='http://mapbox.com'>Mapbox</a>"
-        });
-
-  var fireIcon = L.icon({
-      iconUrl: 'fire.png'
-    });
-
+  var streets = L.tileLayer(
+    'http://api.tiles.mapbox.com/v3/grafa.map-omtiruqb/{z}/{x}/{y}.png', {
+      attribution: "<a href='http://mapbox.com'>Mapbox</a>"
+      });
+  function addCommas(nStr){
+    nStr += '';
+    x = nStr.split('.');
+    x1 = x[0];
+    x2 = x.length > 1 ? '.' + x[1] : '';
+    var rgx = /(\d+)(\d{3})/;
+    while (rgx.test(x1)) {
+      x1 = x1.replace(rgx, '$1' + ',' + '$2');
+    }
+    return x1 + x2;
+  }
+  function getRadius(n) {
+      return n > 200000 ? 24 :
+      n > 100000 ? 20 :
+      n > 50000 ? 16 :
+      n > 25000 ? 12 :
+      n > 15000 ? 8 :
+      n > 5000 ? 4 :
+        2;
+  }
+  function geojsonMarkerOptions(feature) {
+      return {
+          radius: getRadius(feature.properties.area),
+          color: '#990000',
+          fillColor: "#990000",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7
+      }
+  };
   function onEachFeature(feature, layer) {
-    layer.bindPopup('<h2>' + feature.properties.fire_name + '</h2>' + '<br />' + 
+    layer.bindPopup('<h2>' + feature.properties.fire_name + '</h2>'+ 
       '<strong>Fire Number: </strong>' + feature.properties.fire_number + '<br />' + 
-      '<strong>Acres Burned: </strong>' + feature.properties.area + '<br />' + 
+      '<strong>Acres Burned: </strong>' + addCommas(feature.properties.area) + '<br />' + 
       '<strong>Report Date: </strong>' + feature.properties.report_date
       );
   }
+  var map = L.map('map');
+  terrain.addTo(map);
+  L.control.layers({
+      "Terrain (default)": terrain,
+      "Mapbox Streets": streets
+  }).addTo(map);
 
   /* Load points GeoJSON and add to map */
   $.getJSON($('link[rel="points"]').attr("href"), function(data) {
-    var geojson = L.geoJson(data, {
-
-      pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, {icon: fireIcon});
-      },
-
-      onEachFeature: onEachFeature
+      var geojsonlayer = L.geoJson(data, {
+          onEachFeature: onEachFeature,
+          pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng, geojsonMarkerOptions(feature));
+          }
+      });
+      geojsonlayer.addTo(map);
+      map.fitBounds(geojsonlayer.getBounds());
    });
-    var map = L.map('map').fitBounds(geojson.getBounds());
-    terrain.addTo(map);
-    L.control.layers({
-      "Terrain (default)": terrain,
-      "Mapbox Streets": streets
-      }).addTo(map);
-
-    var markers = L.markerClusterGroup();
-
-    markers.addLayer(geojson);
-    map.addLayer(markers);
-  });
 
   </script>
 </body>

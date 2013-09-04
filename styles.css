@@ -46,6 +46,10 @@ div#info h2 {
   color: #333;
 }
 
+.leaflet-popup-content h2{
+  margin: 0;
+}
+
 .disclaimer {
   font-size: 0.7em;
 }
